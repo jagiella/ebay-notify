@@ -85,6 +85,21 @@ def getArticles(txt):
 
     return props
     
+
+import json
+
+def pushbullet_message(title, body, image_url):
+    msg = {"type": "file", "title": title, "body": body, "file_type": "image/jpeg", "file_url": image_url}
+    TOKEN = 'o.cSoxLeNE6xvVb1XxkldTv9NhZe1QwKOuL'
+    resp = requests.post('https://api.pushbullet.com/v2/pushes', 
+                         data=json.dumps(msg),
+                         headers={'Authorization': 'Bearer ' + TOKEN,
+                                  'Content-Type': 'application/json'})
+    if resp.status_code != 200:
+        raise Exception('Error',resp.status_code)
+    else:
+        print ('Message sent') 
+
 class Scraper:
     def __init__(self):
         self.all_props = {}
@@ -123,9 +138,17 @@ class Scraper:
                     n = Notify.Notification.new(self.all_props[key][3], self.all_props[key][0], image_file)
                     n.show()
             
+                    title = '%s, %s, %s' % (self.all_props[key][3], self.all_props[key][0], self.all_props[key][2])
+                    body  = 'https://www.ebay-kleinanzeigen.de' + self.all_props[key][4]
+                    image_url = self.all_props[key][1]
+                    pushbullet_message(title, body, image_url)
+            
             time.sleep(interval)
 
 if(__name__=='__main__'):
+    # pushbullet_message('http://www.test.de', 'https://www.google.de', 'https://i.ebayimg.com/00/s/MTExMlgxMDky/z/i1cAAOSw7yFgjHI8/$_2.JPG')
+
+# else:
     scraper = Scraper()
     scraper.start()
         
