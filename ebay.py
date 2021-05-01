@@ -130,9 +130,9 @@ class Scraper:
             props = {}
             props.update(getArticles(getResponse('zelda')))
             props.update(getArticles(getResponse('metroid')))
-            props.update(getArticles(getResponse('nintendo 64')))
-            props.update(getArticles(getResponse('n64')))
-            props.update(getArticles(getResponse('game boy')))
+            # props.update(getArticles(getResponse('nintendo 64')))
+            # props.update(getArticles(getResponse('n64')))
+            # props.update(getArticles(getResponse('game boy')))
             props.update(getArticles(getResponse('mole mania')))
             
             new_articles = set(props.keys()) - set(self.all_props.keys())
@@ -227,4 +227,4 @@ if(__name__=='__main__'):
         
         return render_template('index.html', props=sorted_dict)
     
-    app.run(host='localhost', port=8080)
+    app.run(host='localhost', port=1234)

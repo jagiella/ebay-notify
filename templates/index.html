@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+.grid-container {
+  display: grid;
+  grid-template-columns: auto auto auto auto;
+  background-color: #2196F3;
+  padding: 10px;
+}
+.grid-item {
+  background-color: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(0, 0, 0, 0.8);
+  padding: 20px;
+  font-size: 30px;
+  text-align: center;
+}
+</style>
+</head>
+<body>
+
+<h1>Grid Elements</h1>
+
+<p>A Grid Layout must have a parent element with the <em>display</em> property set to <em>grid</em> or <em>inline-grid</em>.</p>
+
+<p>Direct child element(s) of the grid container automatically becomes grid items.</p>
+
+<div class="grid-container">
+  {% for key in props.keys() %}
+  <div class="grid-item">
+    <img src="{{props[key][1]}}">
+    <div>
+      <div>{{props[key][3]}}</div>
+      <a href="https://www.ebay-kleinanzeigen.de{{props[key][4]}}">{{props[key][0]}}</a>
+      <div>{{props[key][2]}}</div>
+    </div>
+  </div>
+  {% endfor%}
+</div>
+
+</body>
+</html>
