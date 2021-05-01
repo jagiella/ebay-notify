@@ -90,7 +90,7 @@ import json
 
 def pushbullet_message(title, body, image_url):
     msg = {"type": "file", "title": title, "body": body, "file_type": "image/jpeg", "file_url": image_url}
-    TOKEN = 'o.cSoxLeNE6xvVb1XxkldTv9NhZe1QwKOuL'
+    TOKEN = 'o.cSoxLeNE6xvVb1XxkldTv9NhZe1QwKOu'
     resp = requests.post('https://api.pushbullet.com/v2/pushes', 
                          data=json.dumps(msg),
                          headers={'Authorization': 'Bearer ' + TOKEN,
@@ -100,10 +100,25 @@ def pushbullet_message(title, body, image_url):
     else:
         print ('Message sent') 
 
+class Signal:
+    def __init__(self):
+        self.__funcs = []
+    def connect(self, func):
+        if(func not in self.__funcs):
+            self.__funcs.append(func)
+    def disconnect(self, func):
+        if(func in self.__funcs):
+            self.__funcs.remove(func)
+    def emit(self, *args, **kwargs):
+        for func in self.__funcs:
+            func(*args, **kwargs)
+
 class Scraper:
     def __init__(self):
         self.all_props = {}
-        Notify.init("ebay")
+        self.newArticles = Signal()
+        self.newArticle = Signal()
+
         
     def start(self):
         self.scraper = threading.Thread(target=self.scrape)
@@ -125,26 +140,68 @@ class Scraper:
             # print()
             self.all_props.update(props)
             
-            for key in new_articles:
-                print('%s: %s' % (self.all_props[key][3], self.all_props[key][0]))
-                # print(all_props)
-                image_url  = self.all_props[key][1]
-                image_file = os.path.dirname(os.path.realpath(__file__))+'/thumbnail.jpeg'
-                print(image_url)
-                if(image_url != ''):
-                    wget.download(image_url, image_file)
-                #     pixbuf = GdkPixbuf.Pixbuf.new_from_file(image_file)
-                #     n.set_image_from_pixbuf(pixbuf)
-                    n = Notify.Notification.new(self.all_props[key][3], self.all_props[key][0], image_file)
-                    n.show()
+            self.newArticles.emit(new_articles)
             
-                    title = '%s, %s, %s' % (self.all_props[key][3], self.all_props[key][0], self.all_props[key][2])
-                    body  = 'https://www.ebay-kleinanzeigen.de' + self.all_props[key][4]
-                    image_url = self.all_props[key][1]
-                    pushbullet_message(title, body, image_url)
+            # for key in new_articles:
+            #     print('%s: %s' % (self.all_props[key][3], self.all_props[key][0]))
+            #     # print(all_props)
+            #     image_url  = self.all_props[key][1]
+            #     image_file = os.path.dirname(os.path.realpath(__file__))+'/thumbnail.jpeg'
+            #     print(image_url)
+            #     if(image_url != ''):
+            #         wget.download(image_url, image_file)
+            #     #     pixbuf = GdkPixbuf.Pixbuf.new_from_file(image_file)
+            #     #     n.set_image_from_pixbuf(pixbuf)
+            #         n = Notify.Notification.new(self.all_props[key][3], self.all_props[key][0], image_file)
+            #         n.show()
+            
+            #         title = '%s, %s, %s' % (self.all_props[key][3], self.all_props[key][0], self.all_props[key][2])
+            #         body  = 'https://www.ebay-kleinanzeigen.de' + self.all_props[key][4]
+            #         image_url = self.all_props[key][1]
+            #         pushbullet_message(title, body, image_url)
             
             time.sleep(interval)
 
+class GnomeNotifier:
+    def __init__(self, scraper):
+        Notify.init("ebay")
+        self.scraper = scraper
+        scraper.newArticles.connect(self.onNewArticles)
+
+    def onNewArticles(self, new_articles):
+        for key in new_articles:
+            image_url  = self.scraper.all_props[key][1]
+            image_file = os.path.dirname(os.path.realpath(__file__))+'/thumbnail.jpeg'
+            if(image_url != ''):
+                wget.download(image_url, image_file)
+                n = Notify.Notification.new(self.scraper.all_props[key][3], self.scraper.all_props[key][0], image_file)
+                n.show()
+        
+class PushbulletNotifier:
+    def __init__(self, scraper):
+        # Notify.init("ebay")
+        self.scraper = scraper
+        scraper.newArticles.connect(self.onNewArticles)
+
+    def onNewArticles(self, new_articles):
+        for key in new_articles:
+            title  = self.scraper.all_props[key][0]
+            image_url  = self.scraper.all_props[key][1]
+            price  = self.scraper.all_props[key][2]
+            time  = self.scraper.all_props[key][3]
+            link  = 'https://www.ebay-kleinanzeigen.de' + self.scraper.all_props[key][4]
+            
+            #image_file = os.path.dirname(os.path.realpath(__file__))+'/thumbnail.jpeg'
+            if(image_url != ''):
+                title = '%s, %s, %s' % (time, title, price)
+                body  = link
+                # image_url = self.all_props[key][1]
+                pushbullet_message(title, body, image_url)
+
+        
+          
+        
+        
 if(__name__=='__main__'):
     # pushbullet_message('http://www.test.de', 'https://www.google.de', 'https://i.ebayimg.com/00/s/MTExMlgxMDky/z/i1cAAOSw7yFgjHI8/$_2.JPG')
 
@@ -152,31 +209,20 @@ if(__name__=='__main__'):
     scraper = Scraper()
     scraper.start()
         
-
-    
+    # gnomeNotifier = GnomeNotifier(scraper)
+    pbNotifier =  PushbulletNotifier(scraper)
     
 
     from flask import Flask, render_template
     app = Flask(__name__)
 
-
-
     @app.route('/')
     def hello_world():
-        # props = {}
-        # props.update(getArticles(getResponse('zelda')))
-        # props.update(getArticles(getResponse('metroid')))
-        # props.update(getArticles(getResponse('nintendo 64')))
-        # props.update(getArticles(getResponse('n64')))
-        # props.update(getArticles(getResponse('game boy')))
-        # props.update(getArticles(getResponse('mole mania')))
         
         props = scraper.all_props
-        # print('sort')
         def sortkey(key):
             return props[key][3]
         sorted_keys = sorted(props, key=sortkey, reverse=True)
-        # print(sorted_keys)
         sorted_dict = {w:props[w]for w in sorted_keys}
         
         return render_template('index.html', props=sorted_dict)
