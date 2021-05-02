@@ -128,20 +128,22 @@ class Scraper:
         self.scraping = True
         while self.scraping:
             props = {}
-            props.update(getArticles(getResponse('zelda')))
-            props.update(getArticles(getResponse('metroid')))
-            # props.update(getArticles(getResponse('nintendo 64')))
-            # props.update(getArticles(getResponse('n64')))
-            # props.update(getArticles(getResponse('game boy')))
-            props.update(getArticles(getResponse('mole mania')))
-            
-            new_articles = set(props.keys()) - set(self.all_props.keys())
-            # print(new_articles)
-            # print()
-            self.all_props.update(props)
-            
-            self.newArticles.emit(new_articles)
-            
+            try:
+                props.update(getArticles(getResponse('zelda')))
+                props.update(getArticles(getResponse('metroid')))
+                # props.update(getArticles(getResponse('nintendo 64')))
+                # props.update(getArticles(getResponse('n64')))
+                # props.update(getArticles(getResponse('game boy')))
+                props.update(getArticles(getResponse('mole mania')))
+                
+                new_articles = set(props.keys()) - set(self.all_props.keys())
+                # print(new_articles)
+                # print()
+                self.all_props.update(props)
+                
+                self.newArticles.emit(new_articles)
+            except:
+                print('something went wrong')
             # for key in new_articles:
             #     print('%s: %s' % (self.all_props[key][3], self.all_props[key][0]))
             #     # print(all_props)
