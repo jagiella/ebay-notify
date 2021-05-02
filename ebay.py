@@ -210,7 +210,7 @@ if(__name__=='__main__'):
     scraper.start()
         
     # gnomeNotifier = GnomeNotifier(scraper)
-    pbNotifier =  PushbulletNotifier(scraper)
+    # pbNotifier =  PushbulletNotifier(scraper)
     
 
     from flask import Flask, render_template
