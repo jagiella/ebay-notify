@@ -10,8 +10,8 @@ import requests
 import wget
 import time
 import threading
-from gi.repository import GObject, GdkPixbuf
-from gi.repository import Notify
+#from gi.repository import GObject, Gdk, GdkPixbuf
+#from gi.repository import Notify
 
 def getResponse(query):
     keywords = query.split(' ')
@@ -227,4 +227,4 @@ if(__name__=='__main__'):
         
         return render_template('index.html', props=sorted_dict)
     
-    app.run(host='localhost', port=1234)
+    app.run(host='0.0.0.0', port=1234)
