@@ -7,7 +7,9 @@ Created on Tue May  4 12:25:01 2021
 """
 
 from flask import Flask, render_template
-from flask_socketio import SocketIO
+from flask_socketio import SocketIO, emit
+
+import time, threading
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
@@ -20,6 +22,17 @@ def hello_world():
 @socketio.on('my event')
 def handle_my_custom_event(json):
     print('received json: ' + str(json))
+    # emit('my response', str(time.time()))
+
+class Emitter:
+    def __init__(self):
+        self.emitter = threading.Thread(target=self.emit)
+        self.emitter.start()
+    def emit(self):
+        while(True):
+            socketio.emit('my response', str(time.time()))
+            time.sleep(1)
 
 if __name__ == '__main__':
+    emitter = Emitter()
     socketio.run(app, host='0.0.0.0', port=1234, debug=True)

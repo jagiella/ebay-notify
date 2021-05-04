@@ -115,53 +115,53 @@ class Signal:
             func(*args, **kwargs)
 
 class Scraper:
-    def __init__(self):
+    def __init__(self, configfile='scraper.json'):
+        self.configfile = configfile
         self.all_props = {}
         self.newArticles = Signal()
         self.newArticle = Signal()
-
+        self.queries = []
+        self.__load(configfile)
+            # 'zelda', 'metroid', 'mole mania']
         
     def start(self):
-        self.scraper = threading.Thread(target=self.scrape)
+        self.scraper = threading.Thread(target=self.__scrape)
         self.scraper.start()
         
-    def scrape(self, interval = 60):
+    def addQuery(self, query):
+        if(query not in self.queries):
+            self.queries.append(query)
+            self.__save(self.configfile)
+    def removeQuery(self, query):
+        if(query in self.queries):
+            self.queries.remove(query)
+            self.__save(self.configfile)
+        
+    def __load(self, filename):
+        if(os.path.exists(filename)):
+            with open(filename, 'r+') as fp:
+                self.queries = json.load(fp)
+    def __save(self, filename):
+        with open(filename, 'w+') as fp:
+            json.dump(self.queries, fp)
+        
+    def __scrape(self, interval = 60, delay = 2):
         self.scraping = True
         while self.scraping:
             props = {}
             try:
-                props.update(getArticles(getResponse('zelda')))
-                props.update(getArticles(getResponse('metroid')))
-                # props.update(getArticles(getResponse('nintendo 64')))
-                # props.update(getArticles(getResponse('n64')))
-                # props.update(getArticles(getResponse('game boy')))
-                props.update(getArticles(getResponse('mole mania')))
+                for query in self.queries:
+                    props.update(getArticles(getResponse(query)))
+                    time.sleep(delay)
                 
                 new_articles = set(props.keys()) - set(self.all_props.keys())
-                # print(new_articles)
-                # print()
+                
+                # self.all_props = {}
                 self.all_props.update(props)
                 
                 self.newArticles.emit(new_articles)
             except:
                 print('something went wrong')
-            # for key in new_articles:
-            #     print('%s: %s' % (self.all_props[key][3], self.all_props[key][0]))
-            #     # print(all_props)
-            #     image_url  = self.all_props[key][1]
-            #     image_file = os.path.dirname(os.path.realpath(__file__))+'/thumbnail.jpeg'
-            #     print(image_url)
-            #     if(image_url != ''):
-            #         wget.download(image_url, image_file)
-            #     #     pixbuf = GdkPixbuf.Pixbuf.new_from_file(image_file)
-            #     #     n.set_image_from_pixbuf(pixbuf)
-            #         n = Notify.Notification.new(self.all_props[key][3], self.all_props[key][0], image_file)
-            #         n.show()
-            
-            #         title = '%s, %s, %s' % (self.all_props[key][3], self.all_props[key][0], self.all_props[key][2])
-            #         body  = 'https://www.ebay-kleinanzeigen.de' + self.all_props[key][4]
-            #         image_url = self.all_props[key][1]
-            #         pushbullet_message(title, body, image_url)
             
             time.sleep(interval)
 
@@ -240,34 +240,42 @@ if(__name__=='__main__'):
     # pbNotifier =  PushbulletNotifier(scraper)
     
 
-    from flask import Flask, render_template
+    from flask import Flask, render_template, request
     from flask_socketio import SocketIO, emit 
     app = Flask(__name__)
     app.config['SECRET_KEY'] = 'secret!'
     socketio = SocketIO(app)
 
-    @app.route('/')
+    @app.route('/', methods=['GET', 'POST'])
     def hello_world():
         
+        # print(request.data)
+        # print(request.form)
+        for command, value in request.form.items():
+            if(command=='remove'):
+                scraper.removeQuery(value)
+            elif(command=='add'):
+                scraper.addQuery(value)
+                
         props = scraper.all_props
         def sortkey(key):
             return props[key][3]
         sorted_keys = sorted(props, key=sortkey, reverse=True)
         sorted_dict = {w:props[w]for w in sorted_keys}
         
-        return render_template('index.html', props=sorted_dict)
+        return render_template('index.html', props=sorted_dict, queries=scraper.queries)
     
     @socketio.on('my event')
     def handle_my_custom_event(json):
         print('received json: ' + str(json))
         
-    @socketio.event
-    def my_event(message):
-        emit('update', {'data': 'got it!'})
+    # @socketio.event
+    # def my_event(message):
+    #     emit('update', {'data': 'got it!'})
     
     def onUpdate(*args):
         print('emit update')
-        socketio.emit( 'update', {})
+        socketio.emit( 'my response', str(datetime.datetime.now()))
         # my_event('bla')
         
     scraper.newArticles.connect(onUpdate)

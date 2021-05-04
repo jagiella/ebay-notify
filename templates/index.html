@@ -19,11 +19,24 @@
 </head>
 <body>
 
-<h1 id="p1">Grid Elements</h1>
+<h1 id="bla">Last Update</h1>
 
-<p>A Grid Layout must have a parent element with the <em>display</em> property set to <em>grid</em> or <em>inline-grid</em>.</p>
-
-<p>Direct child element(s) of the grid container automatically becomes grid items.</p>
+<table>
+  {% for query in queries %}
+  <form method="post">
+  <tr>
+    <td>{{query}}</td>
+    <td><button name="remove" value="{{query}}">-</button></td>
+  </tr>
+  </form>
+  {% endfor%}
+  <form method="post">
+  <tr>
+    <td><input id="addid" name="add"></input></td>
+    <td><button>+</button></td>
+  </tr>
+  </form>
+</table>
 
 <div class="grid-container">
   {% for key in props.keys() %}
@@ -45,6 +58,11 @@
         document.getElementById("p1").innerHTML = "New text!";
 
     });
+    socket.on('my response', function(data) {
+        document.getElementById("bla").innerHTML="Last Update: " + data;
+        location.reload();
+    });
+
     socket.on('connect', function() {
         socket.emit('my event', {data: 'I\'m connected!'});
     });
