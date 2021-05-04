@@ -65,12 +65,13 @@ def getArticles(txt):
         
         time = article.xpath('div/div/div[@class="aditem-main--top--right"]/text()')
         time = (''.join(time)).replace('\n','').strip()
-        # print(time)
+        time = parseTime(time)
+        # print("'%s'" % (time))
         
         link = article.attrib['data-href']
         
         # if(len(time) == 2): # ignore top articles
-        if(time != ''):
+        if(time is not None):
             props[ID] = [
                 title,
                 image,
@@ -201,11 +202,35 @@ class PushbulletNotifier:
                 pushbullet_message(title, body, image_url)
 
         
-          
+import datetime
+def parseTime(date_time_str):
+
+    try:
+        if("Heute" in date_time_str):
+            date_time_obj = datetime.datetime.combine(
+                datetime.datetime.today(),
+                datetime.datetime.strptime(date_time_str, 'Heute, %H:%M').time())
+        elif("Gestern" in date_time_str): 
+            date_time_obj = datetime.datetime.combine(
+                datetime.datetime.today() - datetime.timedelta(days=1),
+                datetime.datetime.strptime(date_time_str, 'Gestern, %H:%M').time())
+    
+        else:    
+            date_time_obj = datetime.datetime.strptime(date_time_str, '%d.%m.%Y')
+    except:
+        return None
+    else:
+        # print('%s --> %s' % (date_time_str, date_time_obj))
+        return date_time_obj
         
         
 if(__name__=='__main__'):
     # pushbullet_message('http://www.test.de', 'https://www.google.de', 'https://i.ebayimg.com/00/s/MTExMlgxMDky/z/i1cAAOSw7yFgjHI8/$_2.JPG')
+    
+    # for txt in ['02.05.2021', 'Heute, 08:51', 'Gestern, 16:38', ]:
+    #     parseTime(txt)
+#     with open("test.html", "r+") as fp:    
+#         getArticles(fp.read())
 
 # else:
     scraper = Scraper()
@@ -216,7 +241,10 @@ if(__name__=='__main__'):
     
 
     from flask import Flask, render_template
+    from flask_socketio import SocketIO, emit 
     app = Flask(__name__)
+    app.config['SECRET_KEY'] = 'secret!'
+    socketio = SocketIO(app)
 
     @app.route('/')
     def hello_world():
@@ -229,4 +257,20 @@ if(__name__=='__main__'):
         
         return render_template('index.html', props=sorted_dict)
     
-    app.run(host='0.0.0.0', port=1234)
+    @socketio.on('my event')
+    def handle_my_custom_event(json):
+        print('received json: ' + str(json))
+        
+    @socketio.event
+    def my_event(message):
+        emit('update', {'data': 'got it!'})
+    
+    def onUpdate(*args):
+        print('emit update')
+        socketio.emit( 'update', {})
+        # my_event('bla')
+        
+    scraper.newArticles.connect(onUpdate)
+    
+    # app.run(host='0.0.0.0', port=1234, debug=True)
+    socketio.run(app, host='0.0.0.0', port=1234, debug=True)

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+
 <head>
 <style>
 .grid-container {
@@ -19,7 +19,7 @@
 </head>
 <body>
 
-<h1>Grid Elements</h1>
+<h1 id="p1">Grid Elements</h1>
 
 <p>A Grid Layout must have a parent element with the <em>display</em> property set to <em>grid</em> or <em>inline-grid</em>.</p>
 
@@ -38,5 +38,16 @@
   {% endfor%}
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
+<script type="text/javascript" charset="utf-8">
+    var socket = io();
+    socket.on('update', function(data) {
+        document.getElementById("p1").innerHTML = "New text!";
+
+    });
+    socket.on('connect', function() {
+        socket.emit('my event', {data: 'I\'m connected!'});
+    });
+</script>
+
 </body>
-</html>
