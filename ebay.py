@@ -10,6 +10,7 @@ import requests
 import wget
 import time
 import threading
+import logging
 #from gi.repository import GObject, Gdk, GdkPixbuf
 #from gi.repository import Notify
 
@@ -116,6 +117,8 @@ class Signal:
 
 class Scraper:
     def __init__(self, configfile='scraper.json'):
+        self.logger = logging.getLogger('Scraper')
+        
         self.configfile = configfile
         self.all_props = {}
         self.newArticles = Signal()
@@ -131,6 +134,8 @@ class Scraper:
         
     def stop(self):
         self.scraping = False
+        self.scraper.join()
+        self.scraper = None
         
     def addQuery(self, query):
         if(query not in self.queries):
@@ -154,8 +159,10 @@ class Scraper:
         self.scraping = True
         while self.scraping:
             props = {}
+            start_time = time.time()
             try:
-                for query in self.queries:
+                for query in list(self.queries):
+                    self.logger.info('Scrape query "%s"' % (query))
                     props.update(getArticles(getResponse(query)))
                     time.sleep(delay)
                 
@@ -165,10 +172,15 @@ class Scraper:
                 self.all_props.update(props)
                 
                 self.newArticles.emit(new_articles)
-            except:
-                print('something went wrong')
+            except Exception as e:
+                self.logger.exception(e)
             
-            time.sleep(interval)
+            while time.time() - start_time < interval:
+                time.sleep(0.1)
+                if(not self.scraping):
+                    print('stopped')
+                    return
+            # time.sleep(interval)
         print('stopped')
 
 class GnomeNotifier:
@@ -231,6 +243,9 @@ def parseTime(date_time_str):
         
         
 if(__name__=='__main__'):
+    
+    logging.basicConfig(level=logging.INFO)
+    
     # pushbullet_message('http://www.test.de', 'https://www.google.de', 'https://i.ebayimg.com/00/s/MTExMlgxMDky/z/i1cAAOSw7yFgjHI8/$_2.JPG')
     
     # for txt in ['02.05.2021', 'Heute, 08:51', 'Gestern, 16:38', ]:
@@ -248,25 +263,30 @@ if(__name__=='__main__'):
 
     from flask import Flask, render_template, request
     from flask_socketio import SocketIO, emit 
+    # import eventlet 
+    # eventlet.monkey_patch() 
+    from gevent import monkey
+    monkey.patch_all()
+
     app = Flask(__name__)
     app.config['SECRET_KEY'] = 'secret!'
-    socketio = SocketIO(app)
+    socketio = SocketIO(app, async_mode='gevent')
 
     @app.route('/', methods=['GET', 'POST'])
     def hello_world():
         
         # print(request.data)
         # print(request.form)
-        for command, value in request.form.items():
-            if(command=='remove'):
-                scraper.removeQuery(value)
-            elif(command=='add'):
-                scraper.addQuery(value)
-            elif(command=='pause'):
-                if(scraper.scraping):
-                    scraper.stop()
-                else:
-                    scraper.start()
+        # for command, value in request.form.items():
+        #     if(command=='remove'):
+        #         scraper.removeQuery(value)
+        #     elif(command=='add'):
+        #         scraper.addQuery(value)
+        #     elif(command=='pause'):
+        #         if(scraper.scraping):
+        #             scraper.stop()
+        #         else:
+        #             scraper.start()
                 
         props = scraper.all_props
         def sortkey(key):
@@ -274,7 +294,7 @@ if(__name__=='__main__'):
         sorted_keys = sorted(props, key=sortkey, reverse=True)
         sorted_dict = {w:props[w]for w in sorted_keys}
         
-        return render_template('index.html', props=sorted_dict, queries=scraper.queries, scraping=scraper.scraping)
+        return render_template('index.html', props=sorted_dict, queries=scraper.queries, scraping=scraper.scraping, update_time=str(datetime.datetime.now()))
     
     @socketio.on('my event')
     def handle_my_custom_event(json):
@@ -292,4 +312,4 @@ if(__name__=='__main__'):
     scraper.newArticles.connect(onUpdate)
     
     # app.run(host='0.0.0.0', port=1234, debug=True)
-    socketio.run(app, host='0.0.0.0', port=1234, debug=True)
+    socketio.run(app, host='0.0.0.0', port=1234, debug=False)

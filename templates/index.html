@@ -19,13 +19,11 @@
 </head>
 <body>
 
-<h1 id="bla">Last Update</h1>
+<h1 id="bla">Last Update: {{update_time}}</h1>
 <form method="post">
-  {% if scraping %}
-  <button name="pause" value="">stop</button>
-  {% else %}
-  <button name="pause" value="">start</button>
-  {% endif %}
+  <button name="pause" value="">
+    {% if scraping %}stop{% else %}start{% endif %}{{scraping}}
+  </button>
 </form>
 <table>
   {% for query in queries %}
@@ -60,13 +58,13 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
 <script type="text/javascript" charset="utf-8">
     var socket = io();
-    socket.on('update', function(data) {
-        document.getElementById("p1").innerHTML = "New text!";
 
-    });
     socket.on('my response', function(data) {
         document.getElementById("bla").innerHTML="Last Update: " + data;
-        location.reload();
+        //location.reload(); // reload with post arguments
+        //window.location.href=window.location.href // reload url only
+        location = location.href.split("?")[0];
+        //location.reload();
     });
 
     socket.on('connect', function() {
