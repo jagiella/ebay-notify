@@ -122,11 +122,15 @@ class Scraper:
         self.newArticle = Signal()
         self.queries = []
         self.__load(configfile)
+        self.scraping = False
             # 'zelda', 'metroid', 'mole mania']
         
     def start(self):
         self.scraper = threading.Thread(target=self.__scrape)
         self.scraper.start()
+        
+    def stop(self):
+        self.scraping = False
         
     def addQuery(self, query):
         if(query not in self.queries):
@@ -146,6 +150,7 @@ class Scraper:
             json.dump(self.queries, fp)
         
     def __scrape(self, interval = 60, delay = 2):
+        print('started')
         self.scraping = True
         while self.scraping:
             props = {}
@@ -164,6 +169,7 @@ class Scraper:
                 print('something went wrong')
             
             time.sleep(interval)
+        print('stopped')
 
 class GnomeNotifier:
     def __init__(self, scraper):
@@ -256,6 +262,11 @@ if(__name__=='__main__'):
                 scraper.removeQuery(value)
             elif(command=='add'):
                 scraper.addQuery(value)
+            elif(command=='pause'):
+                if(scraper.scraping):
+                    scraper.stop()
+                else:
+                    scraper.start()
                 
         props = scraper.all_props
         def sortkey(key):
@@ -263,7 +274,7 @@ if(__name__=='__main__'):
         sorted_keys = sorted(props, key=sortkey, reverse=True)
         sorted_dict = {w:props[w]for w in sorted_keys}
         
-        return render_template('index.html', props=sorted_dict, queries=scraper.queries)
+        return render_template('index.html', props=sorted_dict, queries=scraper.queries, scraping=scraper.scraping)
     
     @socketio.on('my event')
     def handle_my_custom_event(json):
