@@ -5,6 +5,10 @@ Created on Thu Apr 29 10:12:55 2021
 
 @author: nickj
 """
+
+from gevent import monkey
+monkey.patch_all()
+    
 import os
 import requests
 import wget
@@ -265,8 +269,7 @@ if(__name__=='__main__'):
     from flask_socketio import SocketIO, emit 
     # import eventlet 
     # eventlet.monkey_patch() 
-    from gevent import monkey
-    monkey.patch_all()
+   
 
     app = Flask(__name__)
     app.config['SECRET_KEY'] = 'secret!'
