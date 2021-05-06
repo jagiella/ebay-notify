@@ -279,17 +279,17 @@ if(__name__=='__main__'):
     def hello_world():
         
         # print(request.data)
-        # print(request.form)
-        # for command, value in request.form.items():
-        #     if(command=='remove'):
-        #         scraper.removeQuery(value)
-        #     elif(command=='add'):
-        #         scraper.addQuery(value)
-        #     elif(command=='pause'):
-        #         if(scraper.scraping):
-        #             scraper.stop()
-        #         else:
-        #             scraper.start()
+        print(request.form)
+        for command, value in request.form.items():
+            if(command=='remove'):
+                scraper.removeQuery(value)
+            elif(command=='add'):
+                scraper.addQuery(value)
+            elif(command=='pause'):
+                if(scraper.scraping):
+                    scraper.stop()
+                else:
+                    scraper.start()
                 
         props = scraper.all_props
         def sortkey(key):

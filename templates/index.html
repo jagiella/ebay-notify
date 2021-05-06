@@ -1,28 +1,32 @@
 <!DOCTYPE html>
 
 <head>
-<style>
-.grid-container {
-  display: grid;
-  grid-template-columns: auto auto auto auto;
-  background-color: #2196F3;
-  padding: 10px;
-}
-.grid-item {
-  background-color: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(0, 0, 0, 0.8);
-  padding: 20px;
-  font-size: 30px;
-  text-align: center;
-}
-</style>
-</head>
+  <style>
+  .grid-container {
+    display: grid;
+    grid-template-columns: auto auto auto auto;
+    background-color: #2196F3;
+    padding: 10px;
+  }
+  .grid-item {
+    background-color: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(0, 0, 0, 0.8);
+    padding: 20px;
+    font-size: 30px;
+    text-align: center;
+  }
+  </style>
+  <!-- CSS only -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-wEmeIV1mKuiNpC+IOBjI7aAzPcEZeedi5yW5f2yOq55WWLwNGmvvx4Um1vskeMj0" crossorigin="anonymous">
+  <!-- JavaScript Bundle with Popper -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-p34f1UUtsS3wqzfto5wAAmdvj+osOnFyQFpp4Ua3gs/ZVWx6oOypYoCJhGGScy+8" crossorigin="anonymous"></script>
+  </head>
 <body>
 
 <h1 id="bla">Last Update: {{update_time}}</h1>
 <form method="post">
-  <button name="pause" value="">
-    {% if scraping %}stop{% else %}start{% endif %}{{scraping}}
+  <button class="btn btn-primary" name="pause" value="">
+    {% if scraping %}stop{% else %}start{% endif %}
   </button>
 </form>
 <table>
@@ -30,21 +34,22 @@
   <form method="post">
   <tr>
     <td>{{query}}</td>
-    <td><button name="remove" value="{{query}}">-</button></td>
+    <td><button class="btn btn-danger" name="remove" value="{{query}}">-</button></td>
   </tr>
   </form>
   {% endfor%}
   <form method="post">
   <tr>
     <td><input id="addid" name="add"></input></td>
-    <td><button>+</button></td>
+    <td><button class="btn btn-success">+</button></td>
   </tr>
   </form>
 </table>
 
-<div class="grid-container">
+<div class="container-fluid bg-primary" >
+  <div class="row row-cols-2 bg-primary">
   {% for key in props.keys() %}
-  <div class="grid-item">
+  <div class="col-lg p-3 bg-light">
     <img src="{{props[key][1]}}">
     <div>
       <div>{{props[key][3]}}</div>
@@ -53,6 +58,7 @@
     </div>
   </div>
   {% endfor%}
+  </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
