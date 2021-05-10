@@ -15,6 +15,10 @@
     font-size: 30px;
     text-align: center;
   }
+
+  #ex1Slider .slider-selection {
+	   background: #BABABA;
+  }
   </style>
   <!-- CSS only -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-wEmeIV1mKuiNpC+IOBjI7aAzPcEZeedi5yW5f2yOq55WWLwNGmvvx4Um1vskeMj0" crossorigin="anonymous">
@@ -24,27 +28,44 @@
 <body>
 
 <h1 id="bla">Last Update: {{update_time}}</h1>
-<form method="post">
-  <button class="btn btn-primary" name="pause" value="">
-    {% if scraping %}stop{% else %}start{% endif %}
-  </button>
-</form>
-<table>
-  {% for query in queries %}
-  <form method="post">
-  <tr>
-    <td>{{query}}</td>
-    <td><button class="btn btn-danger" name="remove" value="{{query}}">-</button></td>
-  </tr>
-  </form>
-  {% endfor%}
-  <form method="post">
-  <tr>
-    <td><input id="addid" name="add"></input></td>
-    <td><button class="btn btn-success">+</button></td>
-  </tr>
-  </form>
-</table>
+<div class="card-group">
+  <div class="card">
+    <h5 class="card-title">Filter</h5>
+    <form method="post">
+      <div id="rangeValue">Distance: {{distance}} km</div>
+      <div class="range">
+        <input type="range" class="form-range" id="customRange1" name="distance" min="0" max="1000" value="{{distance}}" onchange="updateTextInput(this.value);"/>
+      </div>
+      <button class="btn btn-primary">
+        Setzen
+      </button>
+    </form>
+  </div>
+  <div class="card">
+    <h5 class="card-title">Suchwörter</h5>
+    <form method="post">
+      <button class="btn btn-primary" name="pause" value="">
+        {% if scraping %}stop{% else %}start{% endif %}
+      </button>
+    </form>
+    <table>
+      {% for query in queries %}
+      <form method="post">
+      <tr>
+        <td>{{query}}</td>
+        <td><button class="btn btn-danger" name="remove" value="{{query}}">-</button></td>
+      </tr>
+      </form>
+      {% endfor%}
+      <form method="post">
+      <tr>
+        <td><input id="addid" name="add"></input></td>
+        <td><button class="btn btn-success">+</button></td>
+      </tr>
+      </form>
+    </table>
+  </div>
+</div>
 
 <div class="container-fluid bg-primary" >
   <div class="row row-cols-2 bg-primary">
@@ -55,6 +76,7 @@
       <div>{{props[key][3]}}</div>
       <a href="https://www.ebay-kleinanzeigen.de{{props[key][4]}}">{{props[key][0]}}</a>
       <div>{{props[key][2]}}</div>
+      <div>{{props[key][5]}}, {{props[key][6]}}</div>
     </div>
   </div>
   {% endfor%}
@@ -76,6 +98,10 @@
     socket.on('connect', function() {
         socket.emit('my event', {data: 'I\'m connected!'});
     });
+
+    function updateTextInput(val) {
+      document.getElementById('rangeValue').innerHTML="Distanz: " + val + " km";
+    }
 </script>
 
 </body>

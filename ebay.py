@@ -15,6 +15,7 @@ import wget
 import time
 import threading
 import logging
+import geo
 #from gi.repository import GObject, Gdk, GdkPixbuf
 #from gi.repository import Notify
 
@@ -73,6 +74,11 @@ def getArticles(txt):
         time = parseTime(time)
         # print("'%s'" % (time))
 
+        location = article.xpath('div/div/div[@class="aditem-main--top--left"]/text()')
+        location = (''.join(location)).replace('\n','').strip()
+        print("'%s'" % (location))
+        plz, city = location.split(' ', maxsplit=1)
+
         link = article.attrib['data-href']
 
         # if(len(time) == 2): # ignore top articles
@@ -82,7 +88,8 @@ def getArticles(txt):
                 image,
                 price,
                 time,
-                link]
+                link,
+                plz, city]
 
     # print(articles[0].keys())
     # print(articles[0].xpath('div/div/h2/a[@class="ellipsis"]/text()'))
@@ -130,6 +137,8 @@ class Scraper:
         self.queries = []
         self.__load(configfile)
         self.scraping = False
+        self.postalcode = '81477' # Germany
+        self.distance   = 1000    # in km
             # 'zelda', 'metroid', 'mole mania']
 
     def start(self):
@@ -290,14 +299,21 @@ if(__name__=='__main__'):
                     scraper.stop()
                 else:
                     scraper.start()
+            elif(command=='distance'):
+                scraper.distance = int(value)
 
-        props = scraper.all_props
+        # filter
+        props = {name: prop for name, prop in scraper.all_props.items() if geo.getDistance(scraper.postalcode, prop[5]) < scraper.distance}
+
+
         def sortkey(key):
             return props[key][3]
         sorted_keys = sorted(props, key=sortkey, reverse=True)
         sorted_dict = {w:props[w]for w in sorted_keys}
+        
+        
 
-        return render_template('index.html', props=sorted_dict, queries=scraper.queries, scraping=scraper.scraping, update_time=str(datetime.datetime.now()))
+        return render_template('index.html', props=sorted_dict, queries=scraper.queries, scraping=scraper.scraping, update_time=str(datetime.datetime.now()), distance=scraper.distance)
 
     @socketio.on('my event')
     def handle_my_custom_event(json):
