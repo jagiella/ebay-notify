@@ -16,8 +16,9 @@ import time
 import threading
 import logging
 import geo
-#from gi.repository import GObject, Gdk, GdkPixbuf
-#from gi.repository import Notify
+import shutil
+# from gi.repository import GObject, Gdk, GdkPixbuf
+# from gi.repository import Notify
 
 def getResponse(query):
     keywords = query.split(' ')
@@ -205,11 +206,12 @@ class GnomeNotifier:
     def onNewArticles(self, new_articles):
         for key in new_articles:
             image_url  = self.scraper.all_props[key][1]
-            image_file = os.path.dirname(os.path.realpath(__file__))+'/thumbnail.jpeg'
+            image_file = os.path.dirname(os.path.realpath(__file__))+'/thumbnail_%s.jpeg' % (key)
             if(image_url != ''):
                 wget.download(image_url, image_file)
-                n = Notify.Notification.new(self.scraper.all_props[key][3], self.scraper.all_props[key][0], image_file)
+                n = Notify.Notification.new(str(self.scraper.all_props[key][3]), self.scraper.all_props[key][0], image_file)
                 n.show()
+                os.remove(image_file)
 
 class PushbulletNotifier:
     def __init__(self, scraper):
@@ -259,14 +261,6 @@ if(__name__=='__main__'):
 
     logging.basicConfig(level=logging.INFO)
 
-    # pushbullet_message('http://www.test.de', 'https://www.google.de', 'https://i.ebayimg.com/00/s/MTExMlgxMDky/z/i1cAAOSw7yFgjHI8/$_2.JPG')
-
-    # for txt in ['02.05.2021', 'Heute, 08:51', 'Gestern, 16:38', ]:
-    #     parseTime(txt)
-#     with open("test.html", "r+") as fp:
-#         getArticles(fp.read())
-
-# else:
     scraper = Scraper()
     scraper.start()
 
@@ -276,8 +270,7 @@ if(__name__=='__main__'):
 
     from flask import Flask, render_template, request
     from flask_socketio import SocketIO, emit
-    # import eventlet
-    # eventlet.monkey_patch()
+
 
 
     app = Flask(__name__)
