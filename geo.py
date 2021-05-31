@@ -20,8 +20,19 @@ with open('PLZ.csv', newline='') as csvfile: # source: https://launix.de/launix/
         # print(row[0])
         
 def getDistance(plz1, plz2):
-    lon1, lat1 = coordines[int(plz1)]
-    lon2, lat2 = coordines[int(plz2)]
+    try:
+        lon1, lat1 = coordines[int(plz1)]
+    except Exception as e:
+        print('Unknown PLZ: '+plz1)
+        return 0
+
+    try:
+        lon2, lat2 = coordines[int(plz2)]
+    except Exception as e:
+        print('Unknown PLZ: '+plz2)
+        return 0
+
+
     R = 6371.; # kilometres
     phi1 = lat1 * np.pi/180; # phi, lamda in radians
     phi2 = lat2 * np.pi/180;

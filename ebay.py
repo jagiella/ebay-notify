@@ -77,7 +77,7 @@ def getArticles(txt):
 
         location = article.xpath('div/div/div[@class="aditem-main--top--left"]/text()')
         location = (''.join(location)).replace('\n','').strip()
-        print("'%s'" % (location))
+        # print("'%s'" % (location))
         plz, city = location.split(' ', maxsplit=1)
 
         link = article.attrib['data-href']
