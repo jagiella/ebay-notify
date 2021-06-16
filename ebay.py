@@ -183,7 +183,9 @@ class Scraper:
                 new_articles = set(props.keys()) - set(self.all_props.keys())
 
                 # self.all_props = {}
+                self.all_props.clear()
                 self.all_props.update(props)
+                # self.all_props.update(props)
 
                 self.newArticles.emit(new_articles)
             except Exception as e:
