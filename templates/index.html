@@ -48,22 +48,24 @@
         {% if scraping %}stop{% else %}start{% endif %}
       </button>
     </form>
-    <table>
-      {% for query in queries %}
+    <form method="post">
+      <div class="input-group mb-3">
+        <input class="form-control" type="text" placeholder="Suchbegriff eingeben" name="add">
+        <div class="input-group-append">
+          <button class="btn btn-outline-secondary" type="submit">add</button>
+        </div>
+      </div>
+    </form>
+    {% for query in queries %}
       <form method="post">
-      <tr>
-        <td>{{query}}</td>
-        <td><button class="btn btn-danger" name="remove" value="{{query}}">-</button></td>
-      </tr>
+        <div class="input-group mb-3">
+          <input class="form-control" type="text" name="remove" value="{{query}}" readonly>
+          <div class="input-group-append">
+            <button class="btn btn-outline-secondary" type="submit" name="remove" value="{{query}}">remove</button>
+          </div>
+        </div>
       </form>
-      {% endfor%}
-      <form method="post">
-      <tr>
-        <td><input id="addid" name="add"></input></td>
-        <td><button class="btn btn-success">+</button></td>
-      </tr>
-      </form>
-    </table>
+    {% endfor%}
   </div>
 </div>
 

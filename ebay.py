@@ -20,9 +20,9 @@ import shutil
 # from gi.repository import GObject, Gdk, GdkPixbuf
 # from gi.repository import Notify
 
-def getResponse(query):
+def getResponse(query, page=1):
     keywords = query.split(' ')
-    url = 'https://www.ebay-kleinanzeigen.de/s-%s/k0' % ('-'.join(keywords))
+    url = 'https://www.ebay-kleinanzeigen.de/s-seite:%d/%s/k0' % (page, '-'.join(keywords))
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36'}
 
 
@@ -177,8 +177,9 @@ class Scraper:
             try:
                 for query in list(self.queries):
                     self.logger.info('Scrape query "%s"' % (query))
-                    props.update(getArticles(getResponse(query)))
-                    time.sleep(delay)
+                    for page in [1,2]:
+                        props.update(getArticles(getResponse(query, page)))
+                        time.sleep(delay)
 
                 new_articles = set(props.keys()) - set(self.all_props.keys())
 
