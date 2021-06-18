@@ -140,6 +140,7 @@ class Scraper:
         self.scraping = False
         self.postalcode = '81477' # Germany
         self.distance   = 1000    # in km
+        self.age        = 1 # day
             # 'zelda', 'metroid', 'mole mania']
 
     def start(self):
@@ -175,18 +176,25 @@ class Scraper:
             props = {}
             start_time = time.time()
             try:
+
+                # clean old articles
+                for ID in list(self.all_props.keys()):
+                    if(self.all_props[ID][3] < datetime.datetime.today() - datetime.timedelta(days=self.age)):
+                        del self.all_props[ID]
+
                 for query in list(self.queries):
                     self.logger.info('Scrape query "%s"' % (query))
-                    for page in [1,2]:
+                    for page in [1,]:
                         props.update(getArticles(getResponse(query, page)))
                         time.sleep(delay)
 
+                for ID in list(props.keys()):
+                    if(props[ID][3] < datetime.datetime.today() - datetime.timedelta(days=self.age)):
+                        del props[ID]
+
                 new_articles = set(props.keys()) - set(self.all_props.keys())
 
-                # self.all_props = {}
-                self.all_props.clear()
                 self.all_props.update(props)
-                # self.all_props.update(props)
 
                 self.newArticles.emit(new_articles)
             except Exception as e:
@@ -197,7 +205,7 @@ class Scraper:
                 if(not self.scraping):
                     print('stopped')
                     return
-            # time.sleep(interval)
+
         print('stopped')
 
 class GnomeNotifier:
@@ -297,6 +305,8 @@ if(__name__=='__main__'):
                     scraper.start()
             elif(command=='distance'):
                 scraper.distance = int(value)
+            elif(command=='age'):
+                scraper.age = int(value)
 
         # filter
         props = {name: prop for name, prop in scraper.all_props.items() if geo.getDistance(scraper.postalcode, prop[5]) < scraper.distance}
@@ -309,7 +319,7 @@ if(__name__=='__main__'):
         
         
 
-        return render_template('index.html', props=sorted_dict, queries=scraper.queries, scraping=scraper.scraping, update_time=str(datetime.datetime.now()), distance=scraper.distance)
+        return render_template('index.html', props=sorted_dict, queries=scraper.queries, scraping=scraper.scraping, update_time=str(datetime.datetime.now()), distance=scraper.distance, age=scraper.age)
 
     @socketio.on('my event')
     def handle_my_custom_event(json):

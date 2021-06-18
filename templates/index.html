@@ -32,9 +32,13 @@
   <div class="card">
     <h5 class="card-title">Filter</h5>
     <form method="post">
-      <div id="rangeValue">Distance: {{distance}} km</div>
+      <div id="distanceValue">Distance: {{distance}} km</div>
       <div class="range">
-        <input type="range" class="form-range" id="customRange1" name="distance" min="0" max="1000" value="{{distance}}" onchange="updateTextInput(this.value);"/>
+        <input type="range" class="form-range" id="customRange1" name="distance" min="0" max="1000" value="{{distance}}" onchange="updateTextInput('distanceValue',this.value);"/>
+      </div>
+      <div id="ageValue">Age: {{age}} days</div>
+      <div class="range">
+        <input type="range" class="form-range" id="customRange1" name="age" min="0" max="100" value="{{age}}" onchange="updateTextInput('ageValue',this.value);"/>
       </div>
       <button class="btn btn-primary">
         Setzen
@@ -101,8 +105,8 @@
         socket.emit('my event', {data: 'I\'m connected!'});
     });
 
-    function updateTextInput(val) {
-      document.getElementById('rangeValue').innerHTML="Distanz: " + val + " km";
+    function updateTextInput(elementID, val) {
+      document.getElementById(elementID).innerHTML="Distanz: " + val + " km";
     }
 </script>
 
